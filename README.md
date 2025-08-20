@@ -36,8 +36,10 @@ Upgrade your tools, hire your team, unlock new mysterious interface themes, and.
 
 ## 📸 Screenshots
 
-![Screenshot 1](./screenshots/screenshot1.png)  
-![Screenshot 2](./screenshots/screenshot2.png)  
+<img width="1581" height="936" alt="Знімок екрана 2025-08-20 о 11 56 18" src="https://github.com/user-attachments/assets/9de37ef0-ec4a-4292-a73d-59fa377fcf0c" />
+<img width="1581" height="936" alt="Знімок екрана 2025-08-20 о 11 56 41" src="https://github.com/user-attachments/assets/b9b76bba-589f-4b7e-87d4-dfead045b11b" />
+<img width="1581" height="936" alt="Знімок екрана 2025-08-20 о 12 05 33" src="https://github.com/user-attachments/assets/3e55dcc7-0ef7-4738-8257-ba675e4285a5" />
+<img width="1581" height="936" alt="Знімок екрана 2025-08-20 о 12 06 02" src="https://github.com/user-attachments/assets/13dcb6c7-8bb1-4290-9af5-21611f8b55ec" />
 <sub>The rest of the themes? You’ll have to discover them yourself…</sub>
 
 ---
