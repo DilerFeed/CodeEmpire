@@ -1,0 +1,680 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f0f0f0;
+    color: #333;
+    line-height: 1.6;
+}
+
+#game-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+}
+
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px 0;
+}
+
+footer {
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+h1, h2, h3 {
+    font-weight: 600;
+}
+
+.btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn:active {
+    transform: translateY(1px);
+}
+
+.btn-primary {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #3e8e41;
+}
+
+.btn-secondary {
+    background-color: #2196F3;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #0b7dda;
+}
+
+.btn-danger {
+    background-color: #f44336;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #d32f2f;
+}
+
+.btn-prestige {
+    background-color: #9c27b0;
+    color: white;
+    opacity: 0.5;
+}
+
+.btn-prestige.available {
+    opacity: 1;
+}
+
+.btn-prestige.available:hover {
+    background-color: #7b1fa2;
+}
+
+#stats {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.stat-box {
+    flex: 1;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#lines-counter {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+#code-area {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+#code-display {
+    height: 150px;
+    overflow-y: auto;
+    background: #f5f5f5;
+    padding: 10px;
+    border-radius: 4px;
+    font-family: 'Courier New', monospace;
+    scroll-behavior: smooth; /* Smooth scrolling for better user experience */
+}
+
+#code-btn {
+    align-self: center;
+    padding: 12px 24px;
+    font-size: 16px;
+}
+
+#upgrades-container {
+    display: flex;
+    gap: 20px;
+}
+
+#click-upgrades, #passive-upgrades {
+    flex: 1;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.upgrades-list {
+    margin-top: 10px;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.upgrade-item {
+    display: flex;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    gap: 10px;
+}
+
+.upgrade-item:last-child {
+    border-bottom: none;
+}
+
+.upgrade-icon {
+    width: 40px;
+    height: 40px;
+}
+
+.upgrade-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.upgrade-info {
+    flex: 1;
+}
+
+.upgrade-info h3 {
+    font-size: 1rem;
+    margin-bottom: 3px;
+}
+
+.level {
+    font-size: 0.8rem;
+    font-weight: normal;
+    color: #666;
+}
+
+.upgrade-info p {
+    font-size: 0.8rem;
+    color: #666;
+    margin-bottom: 3px;
+}
+
+.upgrade-action button {
+    padding: 5px 10px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.upgrade-action button:disabled {
+    background: #cccccc;
+    cursor: not-allowed;
+}
+
+.max-level-text {
+    font-size: 0.8rem;
+    color: #9c27b0;
+    font-weight: bold;
+}
+
+.can-afford .upgrade-action button {
+    animation: pulse 1.5s infinite;
+}
+
+.max-level {
+    opacity: 0.7;
+}
+
+#theme-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+#theme-progress-container {
+    width: 200px;
+    height: 10px;
+    background: #eee;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+#theme-progress-bar {
+    height: 100%;
+    background: #2196F3;
+    width: 0%;
+    transition: width 0.5s;
+}
+
+#game-controls {
+    display: flex;
+    gap: 10px;
+}
+
+#achievement-popup {
+    position: fixed;
+    bottom: -100px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 15px;
+    border-radius: 8px;
+    transition: bottom 0.5s;
+    z-index: 1000;
+}
+
+#achievement-popup.show {
+    bottom: 20px;
+}
+
+/* Tab navigation */
+#game-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 10px;
+    border-radius: 8px;
+}
+
+.tab-btn {
+    padding: 8px 16px;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    color: #333;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.tab-btn.active {
+    background: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Achievements styling */
+#achievements-container, #stats-container {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#achievements-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.achievement-item {
+    display: flex;
+    padding: 15px;
+    border-radius: 8px;
+    background: #f9f9f9;
+    border: 1px solid #eee;
+    gap: 15px;
+    transition: all 0.3s ease;
+}
+
+.achievement-item.locked {
+    opacity: 0.6;
+    filter: grayscale(1);
+}
+
+.achievement-item.unlocked {
+    border-color: #4CAF50;
+    background-color: #f0fff0;
+}
+
+.achievement-icon {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #eee;
+    border-radius: 8px;
+}
+
+.achievement-icon img {
+    width: 80%;
+    height: 80%;
+    object-fit: contain;
+}
+
+.achievement-reward {
+    margin-top: 5px;
+    font-size: 0.8em;
+    color: #4CAF50;
+}
+
+/* Statistics styling */
+.stats-section {
+    margin-bottom: 30px;
+}
+
+.stats-section h3 {
+    margin-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 5px;
+    color: #2196F3;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    border-bottom: 1px dotted #f0f0f0;
+}
+
+.stat-label {
+    color: #666;
+}
+
+.stat-value {
+    font-weight: bold;
+    color: #333;
+}
+
+/* Event popup */
+#event-popup {
+    position: fixed;
+    top: 30px;
+    right: 30px;
+    background: white;
+    border: 2px solid #2196F3;
+    border-radius: 12px;
+    padding: 20px;
+    width: 300px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+#event-popup.hidden {
+    opacity: 0;
+    transform: translateX(50px);
+    pointer-events: none;
+}
+
+#event-popup h3 {
+    color: #2196F3;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+#event-description {
+    margin-bottom: 15px;
+}
+
+#event-action {
+    font-weight: bold;
+    color: #4CAF50;
+    margin-bottom: 10px;
+}
+
+#event-progress-container {
+    height: 8px;
+    background: #eee;
+    border-radius: 4px;
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+
+#event-progress-bar {
+    height: 100%;
+    background: linear-gradient(to right, #4CAF50, #2196F3);
+    width: 0%;
+    transition: width 1s linear;
+}
+
+#event-complete-btn {
+    width: 100%;
+}
+
+/* Code particles */
+.code-particle {
+    position: absolute;
+    pointer-events: none;
+    z-index: 1000;
+    font-family: 'Courier New', monospace;
+    color: #4CAF50;
+}
+
+#particles-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+    }
+}
+
+@media (max-width: 768px) {
+    #stats, #upgrades-container {
+        flex-direction: column;
+    }
+    
+    #achievements-list {
+        grid-template-columns: 1fr;
+    }
+    
+    #game-tabs {
+        flex-wrap: wrap;
+    }
+}
+
+/* Bulk purchase controls styling */
+#bulk-purchase-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.bulk-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.bulk-buttons {
+    display: flex;
+    gap: 5px;
+}
+
+.bulk-btn {
+    padding: 5px 10px;
+    background: #f0f0f0;
+    border: 1px solid #ddd;
+    color: #333;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.bulk-btn.active {
+    background: #4CAF50;
+    color: white;
+    border-color: #3e8e41;
+}
+
+.bulk-btn:hover:not(.active) {
+    background: #e0e0e0;
+}
+
+/* Tier headers */
+.tier-header {
+    margin-top: 25px;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #ddd;
+    color: #4CAF50;
+    font-size: 1.1rem;
+}
+
+/* Prestige tooltip */
+#prestige-info {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+#prestige-info[data-tooltip]:hover::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    right: 0;
+    background: rgba(0, 0, 0, 0.85);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 8px;
+    white-space: pre-line;
+    width: 250px;
+    z-index: 1000;
+    font-size: 0.9em;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    margin-bottom: 10px;
+}
+
+/* Scrollable upgrade lists */
+.upgrades-list {
+    max-height: 600px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+/* Ensure scrollable upgrade lists */
+.upgrades-list {
+    max-height: 500px;
+    overflow-y: auto;
+    padding-right: 10px;
+    margin-top: 15px;
+}
+
+/* Make sure tier headers stand out */
+.tier-header {
+    position: sticky;
+    top: 0;
+    background: inherit;
+    padding: 10px 0;
+    margin-top: 10px;
+    z-index: 5;
+}
+
+/* Ensure proper display of upgrade items */
+.upgrade-item {
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(0,0,0,0.1);
+    background: rgba(255,255,255,0.05);
+}
+
+/* Make achievement list scrollable too */
+#achievements-list {
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+/* Ensure the formatter properly handles large numbers */
+@media (max-width: 600px) {
+    #lines-counter {
+        font-size: 1.5rem;
+        word-break: break-all;
+    }
+}
+
+/* Make sure tier headers stand out and don't overlap */
+.tier-header {
+    position: sticky;
+    top: 0;
+    background: white; /* Default light theme background */
+    padding: 10px 0;
+    margin-top: 10px;
+    margin-bottom: 15px;
+    z-index: 5;
+    border-bottom: 1px solid #ddd;
+    /* Add a bit of padding to prevent text from touching edges */
+    padding-left: 5px;
+    /* Add shadow to create separation */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* For dark themes, we'll override this in each theme CSS */
+
+/* Tooltip for lines/second breakdown */
+[title] {
+    position: relative;
+    cursor: help;
+}
+
+[title]:hover::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+}
+
+/* Ensure code content always fills available space */
+#code-content {
+    min-height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+}

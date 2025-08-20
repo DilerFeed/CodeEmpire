@@ -1,0 +1,119 @@
+body {
+    background-color: #2b2b2b;
+    color: #a9b7c6;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+#game-container {
+    background-color: #2b2b2b;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+header, footer {
+    border-color: #444;
+}
+
+header h1 {
+    color: #cc7832;
+}
+
+#code-display {
+    background-color: #1e1e1e;
+    border: 1px solid #444;
+    color: #a9b7c6;
+    box-shadow: none;
+    font-family: 'Consolas', 'Courier New', monospace;
+}
+
+.btn {
+    background-color: #3c3f41;
+    color: #a9b7c6;
+    border: none;
+}
+
+.btn:hover {
+    background-color: #4b6eaf;
+}
+
+.btn-primary {
+    background-color: #4b6eaf;
+    color: white;
+}
+
+.btn-secondary {
+    background-color: #cc7832;
+    color: black;
+}
+
+.btn-danger {
+    background-color: #bc3f3c;
+    color: white;
+}
+
+.stat-box, #code-area, #click-upgrades, #passive-upgrades {
+    background-color: #3c3f41;
+    border: none;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.upgrade-item {
+    border-bottom: 1px solid #444;
+}
+
+.upgrade-info h3 {
+    color: #cc7832;
+}
+
+#theme-progress-container {
+    background-color: #1e1e1e;
+}
+
+#theme-progress-bar {
+    background-color: #4b6eaf;
+}
+
+#lines-counter {
+    color: #6a8759;
+}
+
+/* Syntax highlighting in the code display */
+#code-content .keyword {
+    color: #cc7832;
+}
+
+#code-content .string {
+    color: #6a8759;
+}
+
+#code-content .number {
+    color: #6897bb;
+}
+
+#code-content .comment {
+    color: #808080;
+}
+
+/* Fix for text readability */
+.stat-item .stat-label,
+.stat-item .stat-value {
+    color: #a9b7c6; /* Match both label and value color */
+}
+
+.stats-section h3 {
+    color: #cc7832;
+    border-bottom: 1px solid #444;
+}
+
+#achievements-container,
+#stats-container {
+    background-color: #3c3f41;
+    color: #a9b7c6;
+}
+
+/* Theme-specific tier header styling */
+.tier-header {
+    background-color: #3c3f41;
+    color: #cc7832;
+    border-bottom: 1px solid #444;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}

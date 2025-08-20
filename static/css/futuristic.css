@@ -1,0 +1,201 @@
+body {
+    background-color: #0a192f;
+    color: #8892b0;
+    font-family: 'Roboto', sans-serif;
+}
+
+#game-container {
+    background-color: rgba(2, 12, 27, 0.7);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px -10px rgba(2, 12, 27, 0.7);
+    border: 1px solid #1e2d40;
+}
+
+header, footer {
+    border-color: #1e2d40;
+}
+
+header h1 {
+    color: #64ffda;
+    text-shadow: 0 0 10px rgba(100, 255, 218, 0.3);
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+#code-display {
+    background-color: rgba(10, 25, 47, 0.8);
+    border: 1px solid #1e2d40;
+    border-radius: 8px;
+    color: #ccd6f6;
+    font-family: 'Fira Code', monospace;
+    box-shadow: 0 0 20px rgba(100, 255, 218, 0.1);
+}
+
+.btn {
+    background-color: transparent;
+    color: #64ffda;
+    border: 1px solid #64ffda;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 14px;
+    font-weight: 300;
+    transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.btn:hover {
+    background-color: rgba(100, 255, 218, 0.1);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary {
+    background-color: rgba(100, 255, 218, 0.1);
+    color: #64ffda;
+}
+
+.btn-secondary {
+    background-color: transparent;
+    color: #5ccfee;
+    border-color: #5ccfee;
+}
+
+.btn-danger {
+    background-color: transparent;
+    color: #ff6b6b;
+    border-color: #ff6b6b;
+}
+
+.stat-box, #code-area, #click-upgrades, #passive-upgrades {
+    background-color: rgba(2, 12, 27, 0.5);
+    border: 1px solid #1e2d40;
+    border-radius: 8px;
+    box-shadow: 0 10px 30px -15px rgba(2, 12, 27, 0.7);
+}
+
+.upgrade-item {
+    border-bottom: 1px solid #1e2d40;
+    padding: 15px;
+    transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.upgrade-item:hover {
+    background-color: rgba(100, 255, 218, 0.05);
+    transform: translateX(5px);
+}
+
+.upgrade-info h3 {
+    color: #ccd6f6;
+    font-weight: 500;
+}
+
+.level {
+    color: #64ffda;
+}
+
+.upgrade-info p {
+    color: #8892b0;
+}
+
+.upgrade-action button {
+    background-color: transparent;
+    color: #64ffda;
+    border: 1px solid #64ffda;
+    font-size: 12px;
+    transition: all 0.25s cubic-bezier(0.645, 0.045, 0.355, 1);
+}
+
+.upgrade-action button:hover {
+    background-color: rgba(100, 255, 218, 0.1);
+}
+
+#theme-progress-container {
+    background-color: #1e2d40;
+    border-radius: 4px;
+    height: 6px;
+}
+
+#theme-progress-bar {
+    background-color: #64ffda;
+    box-shadow: 0 0 10px rgba(100, 255, 218, 0.5);
+    border-radius: 4px;
+}
+
+#lines-counter {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #ccd6f6;
+    text-shadow: 0 0 10px rgba(100, 255, 218, 0.3);
+}
+
+/* Animated elements */
+@keyframes glow {
+    0% { box-shadow: 0 0 5px rgba(100, 255, 218, 0.2); }
+    50% { box-shadow: 0 0 20px rgba(100, 255, 218, 0.4); }
+    100% { box-shadow: 0 0 5px rgba(100, 255, 218, 0.2); }
+}
+
+#code-display {
+    animation: glow 4s infinite;
+}
+
+/* Cursor effect */
+#code-content::after {
+    content: '|';
+    animation: blink 1s step-end infinite;
+}
+
+@keyframes blink {
+    from, to { opacity: 1; }
+    50% { opacity: 0; }
+}
+
+/* Syntax highlighting */
+#code-content .keyword {
+    color: #ff6b6b;
+}
+
+#code-content .string {
+    color: #64ffda;
+}
+
+#code-content .number {
+    color: #5ccfee;
+}
+
+#code-content .comment {
+    color: #8892b0;
+}
+
+#code-content .function {
+    color: #c792ea;
+}
+
+/* Fix for text readability */
+.stat-item .stat-label,
+.stat-item .stat-value {
+    color: #ccd6f6; /* Make both label and value the same color */
+}
+
+.stats-section h3 {
+    color: #64ffda;
+    border-bottom: 1px solid #1e2d40;
+}
+
+#achievements-container,
+#stats-container {
+    background-color: rgba(2, 12, 27, 0.5);
+    border: 1px solid #1e2d40;
+}
+
+/* Theme-specific tier header styling */
+.tier-header {
+    background-color: rgba(2, 12, 27, 0.8);
+    color: #64ffda;
+    border-bottom: 1px solid #1e2d40;
+    box-shadow: 0 0 10px rgba(100, 255, 218, 0.2);
+    text-shadow: 0 0 5px rgba(100, 255, 218, 0.3);
+    backdrop-filter: blur(5px);
+}

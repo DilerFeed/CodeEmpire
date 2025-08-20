@@ -1,0 +1,180 @@
+body {
+    background-color: #f5f5f5;
+    color: #24292e;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+#game-container {
+    background-color: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    border-radius: 8px;
+}
+
+header {
+    border-bottom: 1px solid #e1e4e8;
+    padding: 16px;
+}
+
+header h1 {
+    color: #0366d6;
+    font-weight: 600;
+}
+
+#code-display {
+    background-color: #f6f8fa;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    color: #24292e;
+    padding: 16px;
+    box-shadow: none;
+}
+
+.btn {
+    border-radius: 6px;
+    font-weight: 600;
+    padding: 8px 16px;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background-color: #2ea44f;
+    color: white;
+    border: 1px solid rgba(27, 31, 35, 0.15);
+}
+
+.btn-primary:hover {
+    background-color: #22863a;
+}
+
+.btn-secondary {
+    background-color: #0366d6;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #0258b8;
+}
+
+.btn-danger {
+    background-color: #d73a49;
+    color: white;
+}
+
+.btn-danger:hover {
+    background-color: #cb2431;
+}
+
+.stat-box, #code-area, #click-upgrades, #passive-upgrades {
+    background-color: white;
+    border-radius: 6px;
+    border: 1px solid #e1e4e8;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    padding: 16px;
+}
+
+.upgrade-item {
+    border-bottom: 1px solid #eaecef;
+    padding: 12px;
+    transition: background-color 0.2s ease;
+}
+
+.upgrade-item:hover {
+    background-color: #f6f8fa;
+}
+
+.upgrade-info h3 {
+    color: #0366d6;
+    font-weight: 600;
+}
+
+.upgrade-action button {
+    background-color: #2ea44f;
+    color: white;
+    font-weight: 600;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.upgrade-action button:hover {
+    background-color: #22863a;
+}
+
+.upgrade-action button:disabled {
+    background-color: #94d3a2;
+    color: #ffffff;
+}
+
+#theme-progress-container {
+    background-color: #eaecef;
+    border-radius: 10px;
+    height: 8px;
+}
+
+#theme-progress-bar {
+    background-color: #0366d6;
+    border-radius: 10px;
+}
+
+#lines-counter {
+    color: #24292e;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+footer {
+    border-top: 1px solid #e1e4e8;
+    padding: 16px;
+}
+
+/* Syntax highlighting */
+#code-content .keyword {
+    color: #d73a49;
+}
+
+#code-content .string {
+    color: #032f62;
+}
+
+#code-content .number {
+    color: #005cc5;
+}
+
+#code-content .comment {
+    color: #6a737d;
+}
+
+#code-content .function {
+    color: #6f42c1;
+}
+
+/* Fix for text readability */
+.stat-item .stat-label {
+    color: #24292e; /* Match the value color */
+}
+
+.stat-item .stat-value {
+    color: #24292e;
+    font-weight: bold;
+}
+
+.stats-section h3 {
+    color: #0366d6;
+    border-bottom: 1px solid #e1e4e8;
+}
+
+#achievements-container,
+#stats-container {
+    background-color: white;
+    color: #24292e;
+    border: 1px solid #e1e4e8;
+}
+
+/* Theme-specific tier header styling */
+.tier-header {
+    background-color: white;
+    color: #0366d6;
+    border-bottom: 1px solid #e1e4e8;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    font-weight: 600;
+}

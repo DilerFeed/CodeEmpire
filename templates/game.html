@@ -1,0 +1,1473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Empire - Programming Clicker Game</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/common.css') }}">
+    <link id="theme-css" rel="stylesheet" href="{{ url_for('static', filename='css/' + theme) }}">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&family=Roboto:wght@300;400;700&family=Space+Mono:wght@400;700&family=Fira+Code&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+</head>
+<body>
+    <div id="game-container">
+        <header>
+            <h1 data-text="Code Empire">Code Empire</h1>
+            <div id="prestige-info">
+                <span>Prestige Level: <span id="prestige-level">0</span></span>
+                <span>Multiplier: <span id="prestige-multiplier">1</span>x</span>
+                <button id="prestige-btn" class="btn btn-prestige">Prestige</button>
+            </div>
+        </header>
+
+        <main>
+            <div id="game-tabs">
+                <button class="tab-btn active" data-tab="main-tab">Main</button>
+                <button class="tab-btn" data-tab="achievements-tab">Achievements</button>
+                <button class="tab-btn" data-tab="stats-tab">Stats</button>
+            </div>
+
+            <div id="main-tab" class="tab-content active">
+                <div id="stats">
+                    <div class="stat-box">
+                        <h2>Lines of Code</h2>
+                        <div id="lines-counter">0</div>
+                    </div>
+                    <div class="stat-box">
+                        <h2>Production</h2>
+                        <div><span id="per-click">1</span> lines/click</div>
+                        <div><span id="per-second">0</span> lines/second</div>
+                    </div>
+                </div>
+
+                <div id="code-area">
+                    <div id="code-display">
+                        <pre id="code-content">// Your code appears here
+function helloWorld() {
+    console.log("Hello, World!");
+}
+                        </pre>
+                    </div>
+                    <button id="code-btn" class="btn btn-primary">Write Code</button>
+                </div>
+
+                <div id="bulk-purchase-controls">
+                    <div class="bulk-control">
+                        <label>Upgrade Purchase:</label>
+                        <div class="bulk-buttons">
+                            <button class="bulk-btn upgrades active" data-count="1">×1</button>
+                            <button class="bulk-btn upgrades" data-count="10">×10</button>
+                            <button class="bulk-btn upgrades" data-count="100">×100</button>
+                        </div>
+                    </div>
+                    <div class="bulk-control">
+                        <label>Staff Purchase:</label>
+                        <div class="bulk-buttons">
+                            <button class="bulk-btn assets active" data-count="1">×1</button>
+                            <button class="bulk-btn assets" data-count="10">×10</button>
+                            <button class="bulk-btn assets" data-count="100">×100</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="upgrades-container">
+                    <div id="click-upgrades">
+                        <h2>Tools & Upgrades</h2>
+                        <div class="upgrades-list" id="click-upgrades-list">
+                            <!-- Dynamically filled by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div id="passive-upgrades">
+                        <h2>Staff & Assets</h2>
+                        <div class="upgrades-list" id="passive-upgrades-list">
+                            <!-- Dynamically filled by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="achievements-tab" class="tab-content">
+                <div id="achievements-container">
+                    <h2>Achievements <span id="achievement-count">(0/0)</span></h2>
+                    <div id="achievements-list">
+                        <!-- Dynamically filled by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="stats-tab" class="tab-content">
+                <div id="stats-container">
+                    <h2>Game Statistics</h2>
+                    <div id="stats-content">
+                        <!-- Dynamically filled by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <div id="theme-info">
+                <span>Current Interface: <span id="current-theme">Notepad</span></span>
+                <div id="theme-progress-container">
+                    <div id="theme-progress-bar"></div>
+                </div>
+            </div>
+            <div id="game-controls">
+                <button id="save-btn" class="btn btn-secondary">Save Game</button>
+                <button id="reset-btn" class="btn btn-danger">Reset Game</button>
+            </div>
+        </footer>
+    </div>
+
+    <div id="achievement-popup">
+        <h3>Achievement Unlocked!</h3>
+        <p id="achievement-text"></p>
+    </div>
+
+    <div id="event-popup" class="hidden">
+        <h3 id="event-title">Event!</h3>
+        <p id="event-description"></p>
+        <div id="event-action"></div>
+        <div id="event-progress-container">
+            <div id="event-progress-bar"></div>
+        </div>
+        <button id="event-complete-btn" class="btn btn-primary">Complete</button>
+    </div>
+
+    <div id="particles-container"></div>
+
+    <script>
+        // Initial game state from Flask
+        const gameState = JSON.parse('{{ game_state|safe }}');
+        const UPGRADES = JSON.parse('{{ upgrades|tojson|safe }}');
+        const PASSIVE_ASSETS = JSON.parse('{{ passive_assets|tojson|safe }}');
+        const THEMES = JSON.parse('{{ themes|tojson|safe }}');
+        const ACHIEVEMENTS = JSON.parse('{{ achievements|tojson|safe }}');
+        const PRESTIGE_REQUIREMENT = 1000000000;  // Updated to 1 billion to match Python code
+        const UPGRADE_MULTIPLIER = 1.15;  // Add this to match Python constant
+        
+        // Track click rate for lines/second calculation
+        const clickTracker = {
+            clicks: [],
+            windowSize: 5000, // Track clicks over 5 seconds
+            
+            addClick: function(timestamp) {
+                this.clicks.push(timestamp);
+                // Remove clicks older than windowSize
+                const cutoff = timestamp - this.windowSize;
+                this.clicks = this.clicks.filter(time => time >= cutoff);
+            },
+            
+            getClickRate: function() {
+                if (this.clicks.length <= 1) return 0;
+                
+                const now = Date.now();
+                const cutoff = now - this.windowSize;
+                // Keep only recent clicks
+                this.clicks = this.clicks.filter(time => time >= cutoff);
+                
+                if (this.clicks.length <= 1) return 0;
+                
+                // Calculate clicks per second based on recent activity
+                return (this.clicks.length / (this.windowSize / 1000));
+            },
+            
+            getLineRate: function() {
+                return this.getClickRate() * gameState.code_per_click;
+            }
+        };
+        
+        // Check for newly unlocked achievements on page load
+        const newAchievements = JSON.parse('{{ new_achievements|tojson|safe }}' || '[]');
+        if (newAchievements.length > 0) {
+            setTimeout(() => {
+                showNewAchievements(newAchievements);
+            }, 1000);
+        }
+        
+        // Formatting helpers - updated to properly show decimals for small values
+        function formatNumber(num) {
+            if (num >= 1000000000) {
+                return (num / 1000000000).toFixed(2) + 'B';
+            } else if (num >= 1000000) {
+                return (num / 1000000).toFixed(2) + 'M';
+            } else if (num >= 1000) {
+                return (num / 1000).toFixed(2) + 'K';
+            } else if (num < 1 && num > 0) {
+                // Improved display for small decimal values
+                return num.toFixed(1);
+            } else {
+                // For integers and other values
+                return num.toFixed(1).replace(/\.0$/, ''); // Show 1 decimal but remove if it's .0
+            }
+        }
+        
+        // Update UI with current state
+        function updateUI() {
+            $('#lines-counter').text(formatNumber(gameState.lines_of_code));
+            $('#per-click').text(formatNumber(gameState.code_per_click));
+            
+            // Calculate combined production rate (passive + click rate)
+            const passiveRate = gameState.code_per_second;
+            const clickRate = clickTracker.getLineRate();
+            const combinedRate = passiveRate + clickRate;
+            
+            // Show combined rate with breakdown on hover
+            $('#per-second').text(formatNumber(combinedRate));
+            
+            // Add tooltip showing the breakdown if we have active clicking
+            if (clickRate > 0) {
+                $('#per-second').attr('title', 
+                    `${formatNumber(passiveRate)} passive + ${formatNumber(clickRate)} from clicking`);
+            } else {
+                $('#per-second').attr('title', '');
+            }
+            
+            $('#prestige-level').text(gameState.prestige_level);
+            $('#prestige-multiplier').text(gameState.prestige_multiplier.toFixed(2));
+            
+            // Update theme if needed
+            updateTheme();
+            
+            // Update upgrades display
+            renderUpgrades();
+            
+            // Update passive assets display
+            renderPassiveAssets();
+            
+            // Update achievements
+            renderAchievements();
+            
+            // Update prestige information
+            updatePrestigeInfo();
+            
+            // Update active events
+            updateActiveEvents();
+        }
+        
+        function updateTheme() {
+            // Save current scroll position
+            const scrollPosition = [window.pageXOffset || document.documentElement.scrollLeft || document.body.scrollLeft,
+                                   window.pageYOffset || document.documentElement.scrollTop  || document.body.scrollTop];
+            
+            // Define the theme order for comparison
+            const themeOrder = [
+                'notepad.css', 
+                'terminal.css', 
+                'ide_basic.css', 
+                'modern_ide.css', 
+                'futuristic.css', 
+                'holographic.css'
+            ];
+            
+            // Find current theme based on total lines
+            let currentThemeName = 'Notepad';
+            let currentThemeCSS = 'notepad.css';
+            let nextThreshold = 100;
+            
+            // Get ordered thresholds
+            const thresholds = Object.keys(THEMES).map(t => parseInt(t)).sort((a, b) => a - b);
+            
+            // Find the theme corresponding to current progress
+            let eligibleThemeIndex = 0;
+            for (let i = 0; i < thresholds.length; i++) {
+                if (gameState.lines_of_code >= thresholds[i]) {
+                    eligibleThemeIndex = i;
+                    currentThemeCSS = THEMES[thresholds[i]].css;
+                    currentThemeName = THEMES[thresholds[i]].name;
+                } else {
+                    nextThreshold = thresholds[i];
+                    break;
+                }
+            }
+            
+            // Store highest theme reached (except after prestige)
+            if (!gameState.highest_theme_reached || 
+                (themeOrder.indexOf(currentThemeCSS) > themeOrder.indexOf(gameState.highest_theme_reached) && !gameState.just_prestiged)) {
+                gameState.highest_theme_reached = currentThemeCSS;
+            }
+            
+            // Use highest theme reached instead of current theme
+            // (unless we just prestiged)
+            if (gameState.highest_theme_reached && !gameState.just_prestiged) {
+                // Find the name for the highest theme
+                for (const [t, theme] of Object.entries(THEMES)) {
+                    if (theme.css === gameState.highest_theme_reached) {
+                        currentThemeName = theme.name;
+                        currentThemeCSS = gameState.highest_theme_reached;
+                        break;
+                    }
+                }
+            }
+            
+            // Reset just_prestiged flag if it was set
+            if (gameState.just_prestiged) {
+                gameState.just_prestiged = false;
+            }
+            
+            // Calculate progress to next theme
+            let progress = 0;
+            
+            // Find current threshold index
+            const currentThemeIndex = themeOrder.indexOf(currentThemeCSS);
+            const highestThemeIndex = themeOrder.indexOf(gameState.highest_theme_reached || 'notepad.css');
+            
+            // If we're using the highest theme we've reached (not the current eligible one)
+            if (highestThemeIndex > eligibleThemeIndex && !gameState.just_prestiged) {
+                // Show minimal progress if below the threshold for the current theme
+                const currentThemeThreshold = thresholds[highestThemeIndex] || 0;
+                const nextThemeThreshold = thresholds[highestThemeIndex + 1] || currentThemeThreshold * 10;
+                
+                // Calculate progress from current lines to next threshold
+                if (gameState.lines_of_code < currentThemeThreshold) {
+                    // Below threshold for current theme, show minimal progress
+                    progress = 5; // Minimal progress display
+                } else {
+                    // Above threshold, show normal progress to next theme
+                    progress = ((gameState.lines_of_code - currentThemeThreshold) / 
+                              (nextThemeThreshold - currentThemeThreshold)) * 100;
+                }
+            } else {
+                // Normal progress calculation
+                const currentThresholdIndex = thresholds.findIndex(t => gameState.lines_of_code < t);
+                
+                if (currentThresholdIndex > 0) {
+                    const currentThreshold = thresholds[currentThresholdIndex - 1];
+                    const nextThreshold = thresholds[currentThresholdIndex];
+                    progress = (gameState.lines_of_code - currentThreshold) / (nextThreshold - currentThreshold) * 100;
+                } else if (currentThresholdIndex === 0) {
+                    progress = gameState.lines_of_code / thresholds[0] * 100;
+                } else {
+                    progress = 100;
+                }
+            }
+            
+            // Update theme CSS only if it changed
+            if (gameState.theme !== currentThemeCSS) {
+                $('#theme-css').attr('href', `/static/css/${currentThemeCSS}`);
+                gameState.theme = currentThemeCSS;
+            }
+            
+            // Update theme info
+            $('#current-theme').text(currentThemeName);
+            $('#theme-progress-bar').css('width', `${progress}%`);
+            
+            // Restore scroll position
+            window.scrollTo(scrollPosition[0], scrollPosition[1]);
+        }
+        
+        function renderUpgrades() {
+            const upgradesList = $('#click-upgrades-list');
+            upgradesList.empty();
+            
+            // Get the current bulk buy mode
+            const bulkCount = gameState.bulk_buy_mode?.upgrades || 1;
+            
+            // Group upgrades by tier
+            const upgradesByTier = {};
+            Object.entries(UPGRADES).forEach(([id, upgrade]) => {
+                const tier = upgrade.tier || 1;
+                if (!upgradesByTier[tier]) {
+                    upgradesByTier[tier] = [];
+                }
+                upgradesByTier[tier].push({id, ...upgrade});
+            });
+            
+            // Sort tiers
+            const sortedTiers = Object.keys(upgradesByTier).sort((a, b) => parseInt(a) - parseInt(b));
+            
+            // For each tier
+            sortedTiers.forEach(tier => {
+                // Add tier header
+                upgradesList.append(`<h3 class="tier-header">Tier ${tier} Upgrades</h3>`);
+                
+                // Add upgrades for this tier
+                upgradesByTier[tier].forEach(upgrade => {
+                    const id = upgrade.id;
+                    const level = gameState.upgrades[id] || 0;
+                    const maxLevel = upgrade.max_level;
+                    
+                    // Calculate single and bulk costs
+                    const singleCost = upgrade.base_cost * Math.pow(UPGRADE_MULTIPLIER, level);
+                    let bulkCost = 0;
+                    let actualBulkCount = bulkCount;
+                    
+                    // Limit bulk count to remaining levels
+                    if (level + bulkCount > maxLevel) {
+                        actualBulkCount = maxLevel - level;
+                    }
+                    
+                    // Calculate cost for bulk purchase
+                    if (actualBulkCount > 1) {
+                        for (let i = 0; i < actualBulkCount; i++) {
+                            bulkCost += upgrade.base_cost * Math.pow(UPGRADE_MULTIPLIER, level + i);
+                        }
+                    } else {
+                        bulkCost = singleCost;
+                    }
+                    
+                    const canAffordSingle = gameState.lines_of_code >= singleCost;
+                    const canAffordBulk = gameState.lines_of_code >= bulkCost;
+                    const maxReached = level >= maxLevel;
+                    
+                    // Determine button text and affordability
+                    let buttonText, canAfford;
+                    if (bulkCount === 1) {
+                        buttonText = `${formatNumber(singleCost)} lines`;
+                        canAfford = canAffordSingle;
+                    } else {
+                        if (actualBulkCount < bulkCount) {
+                            buttonText = `${formatNumber(bulkCost)} lines for ${actualBulkCount} levels`;
+                        } else {
+                            buttonText = `${formatNumber(bulkCost)} lines for ${bulkCount} levels`;
+                        }
+                        canAfford = canAffordBulk;
+                    }
+                    
+                    const upgradeElement = $(`
+                        <div class="upgrade-item ${canAfford ? 'can-afford' : ''} ${maxReached ? 'max-level' : ''}">
+                            <div class="upgrade-icon">
+                                <img src="/static/images/${upgrade.icon}" alt="${upgrade.name}" onerror="this.src='/static/images/default.png'">
+                            </div>
+                            <div class="upgrade-info">
+                                <h3>${upgrade.name} <span class="level">Lvl ${level}/${maxLevel}</span></h3>
+                                <p>${upgrade.description}</p>
+                                <p>+${formatNumber(upgrade.click_bonus)} lines per click</p>
+                            </div>
+                            <div class="upgrade-action">
+                                ${maxReached ? 
+                                    '<span class="max-level-text">MAX</span>' : 
+                                    `<button class="buy-upgrade" data-id="${id}" data-count="${actualBulkCount}" ${canAfford ? '' : 'disabled'}>
+                                        ${buttonText}
+                                    </button>`
+                                }
+                            </div>
+                        </div>
+                    `);
+                    
+                    upgradesList.append(upgradeElement);
+                });
+            });
+        }
+        
+        function renderPassiveAssets() {
+            const assetsList = $('#passive-upgrades-list');
+            assetsList.empty();
+            
+            // Get the current bulk buy mode
+            const bulkCount = gameState.bulk_buy_mode?.assets || 1;
+            
+            // Group assets by tier
+            const assetsByTier = {};
+            Object.entries(PASSIVE_ASSETS).forEach(([id, asset]) => {
+                const tier = asset.tier || 1;
+                if (!assetsByTier[tier]) {
+                    assetsByTier[tier] = [];
+                }
+                assetsByTier[tier].push({id, ...asset});
+            });
+            
+            // Sort tiers
+            const sortedTiers = Object.keys(assetsByTier).sort((a, b) => parseInt(a) - parseInt(b));
+            
+            // For each tier
+            sortedTiers.forEach(tier => {
+                // Add tier header
+                assetsList.append(`<h3 class="tier-header">Tier ${tier} Staff</h3>`);
+                
+                // Add assets for this tier
+                assetsByTier[tier].forEach(asset => {
+                    const id = asset.id;
+                    const level = gameState.passive_assets[id] || 0;
+                    const maxLevel = asset.max_level;
+                    
+                    // Calculate single and bulk costs
+                    const singleCost = asset.base_cost * Math.pow(UPGRADE_MULTIPLIER, level);
+                    let bulkCost = 0;
+                    let actualBulkCount = bulkCount;
+                    
+                    // Limit bulk count to remaining levels
+                    if (level + bulkCount > maxLevel) {
+                        actualBulkCount = maxLevel - level;
+                    }
+                    
+                    // Calculate cost for bulk purchase
+                    if (actualBulkCount > 1) {
+                        for (let i = 0; i < actualBulkCount; i++) {
+                            bulkCost += asset.base_cost * Math.pow(UPGRADE_MULTIPLIER, level + i);
+                        }
+                    } else {
+                        bulkCost = singleCost;
+                    }
+                    
+                    const canAffordSingle = gameState.lines_of_code >= singleCost;
+                    const canAffordBulk = gameState.lines_of_code >= bulkCost;
+                    const maxReached = level >= maxLevel;
+                    
+                    // Determine button text and affordability
+                    let buttonText, canAfford;
+                    if (bulkCount === 1) {
+                        buttonText = `${formatNumber(singleCost)} lines`;
+                        canAfford = canAffordSingle;
+                    } else {
+                        if (actualBulkCount < bulkCount) {
+                            buttonText = `${formatNumber(bulkCost)} lines for ${actualBulkCount} levels`;
+                        } else {
+                            buttonText = `${formatNumber(bulkCost)} lines for ${bulkCount} levels`;
+                        }
+                        canAfford = canAffordBulk;
+                    }
+                    
+                    const assetElement = $(`
+                        <div class="upgrade-item ${canAfford ? 'can-afford' : ''} ${maxReached ? 'max-level' : ''}">
+                            <div class="upgrade-icon">
+                                <img src="/static/images/${asset.icon}" alt="${asset.name}" onerror="this.src='/static/images/default.png'">
+                            </div>
+                            <div class="upgrade-info">
+                                <h3>${asset.name} <span class="level">Lvl ${level}/${maxLevel}</span></h3>
+                                <p>${asset.description}</p>
+                                <p>+${formatNumber(asset.income)} lines per second</p>
+                            </div>
+                            <div class="upgrade-action">
+                                ${maxReached ? 
+                                    '<span class="max-level-text">MAX</span>' : 
+                                    `<button class="buy-asset" data-id="${id}" data-count="${actualBulkCount}" ${canAfford ? '' : 'disabled'}>
+                                        ${buttonText}
+                                    </button>`
+                                }
+                            </div>
+                        </div>
+                    `);
+                    
+                    assetsList.append(assetElement);
+                });
+            });
+        }
+        
+        function renderAchievements() {
+            const achievementsList = $('#achievements-list');
+            achievementsList.empty();
+            
+            const unlockedCount = gameState.achievements.length;
+            const totalCount = Object.keys(ACHIEVEMENTS).length;
+            $('#achievement-count').text(`(${unlockedCount}/${totalCount})`);
+            
+            Object.entries(ACHIEVEMENTS).forEach(([id, achievement]) => {
+                const isUnlocked = gameState.achievements.includes(id);
+                
+                const rewardText = achievement.reward ? 
+                    (achievement.reward.click_bonus ? `+${achievement.reward.click_bonus} lines per click` :
+                    achievement.reward.click_multiplier ? `${achievement.reward.click_multiplier}x click power` :
+                    achievement.reward.passive_bonus ? `+${achievement.reward.passive_bonus} lines per second` :
+                    achievement.reward.passive_multiplier ? `${achievement.reward.passive_multiplier}x passive income` :
+                    achievement.reward.prestige_bonus ? `+${achievement.reward.prestige_bonus} prestige multiplier` :
+                    'Special reward') : 'No reward';
+                
+                const achievementElement = $(`
+                    <div class="achievement-item ${isUnlocked ? 'unlocked' : 'locked'}">
+                        <div class="achievement-icon">
+                            <img src="/static/images/${achievement.icon}" alt="${achievement.name}" onerror="this.src='/static/images/achievement.png'">
+                        </div>
+                        <div class="achievement-info">
+                            <h3>${achievement.name}</h3>
+                            <p>${achievement.description}</p>
+                            <p class="achievement-reward">Reward: ${rewardText}</p>
+                        </div>
+                    </div>
+                `);
+                
+                achievementsList.append(achievementElement);
+            });
+        }
+        
+        function updateStats() {
+            $.get('/stats', function(data) {
+                const stats = data.stats;
+                const statsContent = $('#stats-content');
+                statsContent.empty();
+                
+                const statsHTML = `
+                    <div class="stats-section">
+                        <h3>Production</h3>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Lines Written:</span>
+                            <span class="stat-value">${formatNumber(stats.total_lines_written)}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Lines from Clicks:</span>
+                            <span class="stat-value">${formatNumber(stats.total_lines_from_clicks)}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Lines from Passive:</span>
+                            <span class="stat-value">${formatNumber(stats.total_lines_from_passive)}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Highest Lines/Click:</span>
+                            <span class="stat-value">${formatNumber(stats.highest_lines_per_click)}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Highest Lines/Second:</span>
+                            <span class="stat-value">${formatNumber(stats.highest_lines_per_second)}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-section">
+                        <h3>Game Progress</h3>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Clicks:</span>
+                            <span class="stat-value">${formatNumber(stats.total_clicks || 0)}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Upgrades Purchased:</span>
+                            <span class="stat-value">${stats.upgrades_purchased}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Assets Purchased:</span>
+                            <span class="stat-value">${stats.assets_purchased}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Prestiges Completed:</span>
+                            <span class="stat-value">${stats.total_prestiges}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Achievements Unlocked:</span>
+                            <span class="stat-value">${stats.achievements_unlocked}/${stats.achievements_total} (${stats.achievement_percentage.toFixed(1)}%)</span>
+                        </div>
+                    </div>
+                    
+                    <div class="stats-section">
+                        <h3>Player Stats</h3>
+                        <div class="stat-item">
+                            <span class="stat-label">Total Playtime:</span>
+                            <span class="stat-value">${stats.total_playtime}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Average Lines/Click:</span>
+                            <span class="stat-value">${formatNumber(stats.average_lines_per_click)}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Current Prestige Level:</span>
+                            <span class="stat-value">${data.prestige_level}</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Current Prestige Multiplier:</span>
+                            <span class="stat-value">${data.prestige_multiplier.toFixed(2)}x</span>
+                        </div>
+                    </div>
+                `;
+                
+                statsContent.html(statsHTML);
+            });
+        }
+        
+        function updateActiveEvents() {
+            if (!gameState.active_events || gameState.active_events.length === 0) {
+                $('#event-popup').addClass('hidden');
+                return;
+            }
+            
+            const event = gameState.active_events[0];
+            if (event.completed) {
+                $('#event-popup').addClass('hidden');
+                return;
+            }
+            
+            // Update event popup content
+            $('#event-title').text(event.name);
+            $('#event-description').text(event.description);
+            $('#event-action').text(event.action);
+            $('#event-complete-btn').data('id', event.id);
+            
+            // If there's a time limit, update progress bar
+            if (event.end_time) {
+                const now = Date.now() / 1000;
+                const totalDuration = event.end_time - event.start_time;
+                const remaining = event.end_time - now;
+                const progress = 100 - (remaining / totalDuration * 100);
+                
+                $('#event-progress-bar').css('width', `${Math.max(0, Math.min(100, progress))}%`);
+                
+                // If event expired
+                if (now > event.end_time) {
+                    completeEvent(event.id, false);
+                    return;
+                }
+            }
+            
+            $('#event-popup').removeClass('hidden');
+        }
+        
+        function completeEvent(eventId, userInitiated = true) {
+            $.post(`/complete_event/${eventId}`, { user_initiated: userInitiated }, function(data) {
+                if (data.event_completed) {
+                    showNotification('Event Completed', `You successfully completed "${data.event_completed.name}"!`);
+                }
+                Object.assign(gameState, data.game_state);
+                updateUI();
+            }).fail(function(response) {
+                const error = response.responseJSON?.error || 'Error completing event';
+                alert(error);
+            });
+        }
+        
+        function showNotification(title, message) {
+            $('#achievement-text').text(`${title}: ${message}`);
+            $('#achievement-popup').addClass('show');
+            setTimeout(() => {
+                $('#achievement-popup').removeClass('show');
+            }, 3000);
+        }
+        
+        function showNewAchievements(achievements) {
+            if (!achievements || achievements.length === 0) return;
+            
+            let index = 0;
+            
+            function showNext() {
+                if (index >= achievements.length) return;
+                
+                const achievementId = achievements[index];
+                const achievement = ACHIEVEMENTS[achievementId];
+                
+                if (achievement) {
+                    showNotification('Achievement Unlocked', `${achievement.name}: ${achievement.description}`);
+                    
+                    if (achievement.reward) {
+                        let rewardText = '';
+                        if (achievement.reward.click_bonus) rewardText = `+${achievement.reward.click_bonus} lines per click`;
+                        else if (achievement.reward.click_multiplier) rewardText = `${achievement.reward.click_multiplier}x click power`;
+                        else if (achievement.reward.passive_bonus) rewardText = `+${achievement.reward.passive_bonus} lines per second`;
+                        else if (achievement.reward.passive_multiplier) rewardText = `${achievement.reward.passive_multiplier}x passive income`;
+                        else if (achievement.reward.prestige_bonus) rewardText = `+${achievement.reward.prestige_bonus} prestige multiplier`;
+                        
+                        if (rewardText) {
+                            setTimeout(() => {
+                                showNotification('Achievement Reward', rewardText);
+                            }, 3500);
+                        }
+                    }
+                }
+                
+                index++;
+                setTimeout(showNext, 4000);
+            }
+            
+            showNext();
+        }
+        
+        // Code particles when clicking
+        function createCodeParticle(x, y) {
+            const particles = $('#particles-container');
+            const codeSymbols = ['{ }', '( )', '[ ]', ';', '==', '+=', '=>', '&&', '||', '//'];
+            const symbol = codeSymbols[Math.floor(Math.random() * codeSymbols.length)];
+            
+            const particle = $(`<div class="code-particle">${symbol}</div>`);
+            particle.css({
+                left: x,
+                top: y,
+                position: 'absolute',
+                opacity: 1,
+                fontSize: '16px',
+                pointerEvents: 'none',
+                zIndex: 9999
+            });
+            
+            particles.append(particle);
+            
+            // Random initial velocity
+            const angle = Math.random() * Math.PI * 2;
+            const speed = 2 + Math.random() * 4;
+            const vx = Math.cos(angle) * speed;
+            const vy = -5 - Math.random() * 5; // Always go up initially
+            
+            let posX = x;
+            let posY = y;
+            let opacity = 1;
+            const lifetime = 50 + Math.random() * 50;
+            let age = 0;
+            
+            function updateParticle() {
+                if (age >= lifetime) {
+                    particle.remove();
+                    return;
+                }
+                
+                posX += vx;
+                posY += vy;
+                opacity -= 1 / lifetime;
+                
+                particle.css({
+                    left: posX,
+                    top: posY,
+                    opacity: opacity
+                });
+                
+                age++;
+                requestAnimationFrame(updateParticle);
+            }
+            
+            updateParticle();
+        }
+        
+        // Code snippets to display when clicking
+        const codeSnippets = [
+            'console.log("Hello, World!");',
+            'function calculateSum(a, b) { return a + b; }',
+            'const items = [1, 2, 3].map(x => x * 2);',
+            'if (condition) { doSomething(); } else { doSomethingElse(); }',
+            'class User { constructor(name) { this.name = name; } }',
+            'try { riskyOperation(); } catch (error) { handleError(error); }',
+            'import { Component } from "@framework/core";',
+            'const API_URL = process.env.API_URL || "https://api.example.com";',
+            'document.getElementById("app").addEventListener("click", handleClick);',
+            'const result = await fetch("/api/data").then(res => res.json());',
+            'export default function App() { return <div>Hello World</div>; }',
+            'const serverless = require("serverless-http");',
+            'git commit -m "Fix critical bug in production"',
+            'docker-compose up -d',
+            'npm install --save-dev typescript @types/node',
+            'SELECT * FROM users WHERE active = true LIMIT 100;',
+            'CREATE INDEX idx_user_email ON users(email);',
+            'public static void main(String[] args) {',
+            'plt.figure(figsize=(10, 6))',
+            'const train_loader = DataLoader(train_dataset, batch_size=32)',
+            'kubectl apply -f deployment.yaml',
+            '@app.route("/api/users", methods=["GET"])',
+            'terraform init && terraform apply',
+            'async function fetchData() { return await api.get("/data"); }'
+        ];
+        
+        // Game events
+        $('#code-btn').on('click', function(e) {
+            const btnPos = $(this).offset();
+            const centerX = btnPos.left + $(this).width() / 2;
+            const centerY = btnPos.top + $(this).height() / 2;
+            
+            // Create 3-6 particles
+            const numParticles = 3 + Math.floor(Math.random() * 4);
+            for (let i = 0; i < numParticles; i++) {
+                createCodeParticle(
+                    centerX + (Math.random() * 40 - 20),
+                    centerY + (Math.random() * 40 - 20)
+                );
+            }
+            
+            $.post('/click', function(data) {
+                if (data.game_state) {
+                    Object.assign(gameState, data.game_state);
+                }
+                
+                if (data.new_achievements && data.new_achievements.length > 0) {
+                    showNewAchievements(data.new_achievements);
+                }
+                
+                if (data.new_event) {
+                    // A new event was triggered
+                    updateActiveEvents();
+                }
+                
+                updateUI();
+                
+                // Add code snippet animation
+                const snippet = codeSnippets[Math.floor(Math.random() * codeSnippets.length)];
+                const codeContent = $('#code-content');
+                const currentCode = codeContent.text();
+                const lines = currentCode.split('\n');
+                
+                if (lines.length > 15) {
+                    lines.shift();
+                }
+                lines.push(snippet);
+                codeContent.text(lines.join('\n'));
+                codeContent.scrollTop(codeContent[0].scrollHeight);
+            });
+        });
+        
+        $(document).on('click', '.buy-upgrade', function() {
+            const upgradeId = $(this).data('id');
+            const count = $(this).data('count') || 1;
+            
+            // First update the server with our current lines of code including passive income
+            $.post('/update_lines', { 
+                current_lines: gameState.lines_of_code,
+                last_tick: gameState.last_tick 
+            }, function() {
+                // After updating, proceed with the purchase
+                $.post(`/buy_upgrade_bulk/${upgradeId}`, { count: count }, function(data) {
+                    if (data.game_state) {
+                        Object.assign(gameState, data.game_state);
+                    }
+                    
+                    if (data.new_achievements && data.new_achievements.length > 0) {
+                        showNewAchievements(data.new_achievements);
+                    }
+                    
+                    if (data.event_completed) {
+                        showNotification('Event Completed', `You successfully completed "${data.event_completed.name}"!`);
+                    }
+                    
+                    updateUI();
+                }).fail(function(response) {
+                    const error = response.responseJSON?.error || 'Error purchasing upgrade';
+                    alert(error);
+                });
+            });
+        });
+        
+        $(document).on('click', '.buy-asset', function() {
+            const assetId = $(this).data('id');
+            const count = $(this).data('count') || 1;
+            
+            // First update the server with our current lines of code including passive income
+            $.post('/update_lines', { 
+                current_lines: gameState.lines_of_code,
+                last_tick: gameState.last_tick
+            }, function() {
+                // After updating, proceed with the purchase
+                $.post(`/buy_asset_bulk/${assetId}`, { count: count }, function(data) {
+                    if (data.game_state) {
+                        Object.assign(gameState, data.game_state);
+                    }
+                    
+                    if (data.new_achievements && data.new_achievements.length > 0) {
+                        showNewAchievements(data.new_achievements);
+                    }
+                    
+                    updateUI();
+                }).fail(function(response) {
+                    const error = response.responseJSON?.error || 'Error purchasing asset';
+                    alert(error);
+                });
+            });
+        });
+        
+        $('#prestige-btn').on('click', function() {
+            if (gameState.lines_of_code < PRESTIGE_REQUIREMENT) {
+                alert(`You need at least ${formatNumber(PRESTIGE_REQUIREMENT)} lines of code to prestige!`);
+                return;
+            }
+            
+            if (confirm('Are you sure you want to prestige? You will lose all your progress but gain a permanent multiplier.')) {
+                $.post('/prestige', function(data) {
+                    if (data.game_state) {
+                        // Reset theme-related properties immediately
+                        data.game_state.highest_theme_reached = null;
+                        data.game_state.just_prestiged = true;
+                        data.game_state.theme = 'notepad.css';
+                        
+                        // Apply server response
+                        Object.assign(gameState, data.game_state);
+                        
+                        // Force theme update immediately
+                        $('#theme-css').attr('href', `/static/css/notepad.css`);
+                        $('#current-theme').text('Notepad');
+                    }
+                    
+                    if (data.new_achievements && data.new_achievements.length > 0) {
+                        showNewAchievements(data.new_achievements);
+                    }
+                    
+                    showNotification('Prestigious Coder', `You've prestiged and gained a ${gameState.prestige_multiplier.toFixed(2)}x multiplier!`);
+                    updateUI();
+                }).fail(function(response) {
+                    const error = response.responseJSON?.error || 'Error prestiging';
+                    alert(error);
+                });
+            }
+        });
+        
+        $('#save-btn').on('click', function() {
+            $.post('/save', function(response) {
+                showNotification('Game Saved', 'Your progress has been saved successfully!');
+            });
+        });
+        
+        $('#reset-btn').on('click', function() {
+            if (confirm('Are you sure you want to reset your game? ALL PROGRESS WILL BE LOST!')) {
+                $.post('/reset', function(data) {
+                    Object.assign(gameState, data);
+                    showNotification('Game Reset', 'Your game has been reset to the beginning.');
+                    updateUI();
+                });
+            }
+        });
+        
+        $('#event-complete-btn').on('click', function() {
+            const eventId = $(this).data('id');
+            completeEvent(eventId);
+        });
+        
+        // Tab navigation
+        $('.tab-btn').on('click', function() {
+            const targetTab = $(this).data('tab');
+            
+            // Update active tab button
+            $('.tab-btn').removeClass('active');
+            $(this).addClass('active');
+            
+            // Show target tab content
+            $('.tab-content').removeClass('active');
+            $(`#${targetTab}`).addClass('active');
+            
+            // If showing the stats tab, refresh the data
+            if (targetTab === 'stats-tab') {
+                updateStats();
+            }
+        });
+        
+        // Passive income timer
+        setInterval(function() {
+            if (gameState.code_per_second > 0) {
+                const now = Date.now() / 1000;
+                const diff = now - gameState.last_tick;
+                gameState.lines_of_code += gameState.code_per_second * diff;
+                gameState.last_tick = now;
+                
+                // Update stats
+                if (!gameState.stats) gameState.stats = {};
+                if (!gameState.stats.total_lines_written) gameState.stats.total_lines_written = 0;
+                if (!gameState.stats.total_lines_from_passive) gameState.stats.total_lines_from_passive = 0;
+                
+                gameState.stats.total_lines_written += gameState.code_per_second * diff;
+                gameState.stats.total_lines_from_passive += gameState.code_per_second * diff;
+                
+                // Call updateUI to enable purchases from passive income
+                updateUI();
+            }
+            
+            // Also check active events
+            updateActiveEvents();
+        }, 1000);
+        
+        // Initialize the UI
+        $(document).ready(function() {
+            // Set upgrade container height to allow scrolling
+            $('.upgrades-list').css('max-height', '500px').css('overflow-y', 'auto');
+            
+            // Update the UI
+            updateUI();
+        
+            // CSS for tabs and other new elements
+            $("<style>")
+                .prop("type", "text/css")
+                .html(`
+                    #game-tabs {
+                        display: flex;
+                        gap: 10px;
+                        margin-bottom: 20px;
+                        background: rgba(255, 255, 255, 0.1);
+                        padding: 10px;
+                        border-radius: 8px;
+                    }
+                    
+                    .tab-btn {
+                        padding: 8px 16px;
+                        background: transparent;
+                        border: 1px solid rgba(100, 200, 255, 0.4);
+                        color: inherit;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .tab-btn.active {
+                        background: rgba(100, 200, 255, 0.2);
+                        box-shadow: 0 0 10px rgba(100, 200, 255, 0.3);
+                    }
+                    
+                    .tab-content {
+                        display: none;
+                    }
+                    
+                    .tab-content.active {
+                        display: block;
+                    }
+                    
+                    #achievements-container, #stats-container {
+                        background: rgba(255, 255, 255, 0.05);
+                        border-radius: 8px;
+                        padding: 20px;
+                        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+                    }
+                    
+                    #achievements-list {
+                        display: grid;
+                        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                        gap: 15px;
+                        margin-top: 20px;
+                    }
+                    
+                    .achievement-item {
+                        display: flex;
+                        padding: 15px;
+                        border-radius: 8px;
+                        gap: 15px;
+                        transition: all 0.3s ease;
+                    }
+                    
+                    .achievement-item.locked {
+                        opacity: 0.6;
+                        filter: grayscale(1);
+                    }
+                    
+                    .achievement-icon {
+                        width: 50px;
+                        height: 50px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        background: rgba(0, 0, 0, 0.2);
+                        border-radius: 8px;
+                    }
+                    
+                    .achievement-icon img {
+                        width: 80%;
+                        height: 80%;
+                        object-fit: contain;
+                    }
+                    
+                    .achievement-reward {
+                        margin-top: 5px;
+                        font-size: 0.8em;
+                        color: #64ffda;
+                    }
+                    
+                    .stats-section {
+                        margin-bottom: 30px;
+                    }
+                    
+                    .stats-section h3 {
+                        margin-bottom: 10px;
+                        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                        padding-bottom: 5px;
+                    }
+                    
+                    .stat-item {
+                        display: flex;
+                        justify-content: space-between;
+                        padding: 5px 0;
+                    }
+                    
+                    .stat-label {
+                        color: rgba(255, 255, 255, 0.7);
+                    }
+                    
+                    .stat-value {
+                        font-weight: bold;
+                    }
+                    
+                    #event-popup {
+                        position: fixed;
+                        top: 30px;
+                        right: 30px;
+                        background: rgba(0, 20, 40, 0.9);
+                        border: 2px solid rgba(100, 200, 255, 0.6);
+                        border-radius: 12px;
+                        padding: 20px;
+                        width: 300px;
+                        box-shadow: 0 0 30px rgba(0, 100, 255, 0.4);
+                        backdrop-filter: blur(5px);
+                        z-index: 1000;
+                        transition: transform 0.3s ease, opacity 0.3s ease;
+                    }
+                    
+                    #event-popup.hidden {
+                        opacity: 0;
+                        transform: translateX(50px);
+                        pointer-events: none;
+                    }
+                    
+                    #event-popup h3 {
+                        color: #72f1ff;
+                        margin-bottom: 10px;
+                        text-align: center;
+                    }
+                    
+                    #event-description {
+                        margin-bottom: 15px;
+                    }
+                    
+                    #event-action {
+                        font-weight: bold;
+                        color: #64ffda;
+                        margin-bottom: 10px;
+                    }
+                    
+                    #event-progress-container {
+                        height: 8px;
+                        background: rgba(0, 0, 0, 0.3);
+                        border-radius: 4px;
+                        margin-bottom: 15px;
+                        overflow: hidden;
+                    }
+                    
+                    #event-progress-bar {
+                        height: 100%;
+                        background: linear-gradient(to right, #00ffcc, #00ccff);
+                        width: 0%;
+                        transition: width 1s linear;
+                    }
+                    
+                    #event-complete-btn {
+                        width: 100%;
+                    }
+                    
+                    .code-particle {
+                        position: absolute;
+                        pointer-events: none;
+                        z-index: 1000;
+                        font-family: 'Fira Code', monospace;
+                        text-shadow: 0 0 5px rgba(100, 200, 255, 0.6);
+                    }
+                    
+                    #particles-container {
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        pointer-events: none;
+                        z-index: 9999;
+                    }
+                    
+                    #bulk-purchase-controls {
+                        display: flex;
+                        justify-content: space-between;
+                        margin-bottom: 15px;
+                        background: rgba(255, 255, 255, 0.05);
+                        padding: 10px;
+                        border-radius: 8px;
+                    }
+                    
+                    .bulk-control {
+                        display: flex;
+                        align-items: center;
+                        gap: 10px;
+                    }
+                    
+                    .bulk-buttons {
+                        display: flex;
+                        gap: 5px;
+                    }
+                    
+                    .bulk-btn {
+                        padding: 5px 10px;
+                        background: rgba(100, 200, 255, 0.1);
+                        border: 1px solid rgba(100, 200, 255, 0.3);
+                        color: inherit;
+                        border-radius: 4px;
+                        cursor: pointer;
+                        transition: all 0.2s ease;
+                    }
+                    
+                    .bulk-btn.active {
+                        background: rgba(100, 200, 255, 0.3);
+                        box-shadow: 0 0 5px rgba(100, 200, 255, 0.5);
+                    }
+                    
+                    .tier-header {
+                        margin-top: 20px;
+                        padding-bottom: 8px;
+                        border-bottom: 1px solid rgba(100, 200, 255, 0.3);
+                        color: rgba(100, 200, 255, 0.8);
+                    }
+                    
+                    #prestige-info {
+                        position: relative;
+                    }
+                    
+                    #prestige-info[data-tooltip]:hover::before {
+                        content: attr(data-tooltip);
+                        position: absolute;
+                        bottom: 100%;
+                        right: 0;
+                        background: rgba(0, 20, 40, 0.9);
+                        color: white;
+                        padding: 10px;
+                        border-radius: 8px;
+                        border: 1px solid rgba(100, 200, 255, 0.5);
+                        white-space: pre-line;
+                        width: 250px;
+                        z-index: 1000;
+                        font-size: 0.9em;
+                        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+                    }
+                `)
+                .appendTo("head");
+        });
+
+        // Fix for issue #3 - Add missing updatePrestigeInfo function
+        function updatePrestigeInfo() {
+            // Calculate prestige bonus based on current lines
+            $.get('/calculate_prestige_bonus', function(data) {
+                const canPrestige = gameState.lines_of_code >= PRESTIGE_REQUIREMENT;
+                
+                // Update prestige button text to include bonus info
+                if (canPrestige) {
+                    $('#prestige-btn').text(`Prestige (+${data.prestige_bonus.toFixed(2)}x)`);
+                    $('#prestige-btn').addClass('available');
+                    
+                    // Add tooltip with detailed prestige info
+                    $('#prestige-info').attr('data-tooltip', 
+                        `Current multiplier: ${data.current_multiplier.toFixed(2)}x\n` +
+                        `Bonus from prestige: +${data.prestige_bonus.toFixed(2)}x\n` +
+                        `New multiplier: ${data.new_multiplier.toFixed(2)}x`
+                    );
+                } else {
+                    const percentComplete = (gameState.lines_of_code / PRESTIGE_REQUIREMENT * 100).toFixed(2);
+                    $('#prestige-btn').text(`Prestige (${percentComplete}%)`);
+                    $('#prestige-btn').removeClass('available');
+                    $('#prestige-info').attr('data-tooltip', 
+                        `Need ${formatNumber(PRESTIGE_REQUIREMENT)} lines to prestige\n` +
+                        `Current progress: ${formatNumber(gameState.lines_of_code)} / ${formatNumber(PRESTIGE_REQUIREMENT)} lines\n` + 
+                        `${percentComplete}% complete`
+                    );
+                }
+            });
+        }
+        
+        // Fix for issue #2 - Update event handlers for bulk buy buttons
+        // Remove existing click handlers first to prevent duplicates
+        $(document).off('click', '.bulk-btn.upgrades').on('click', '.bulk-btn.upgrades', function() {
+            const count = parseInt($(this).data('count'));
+            $('.bulk-btn.upgrades').removeClass('active');
+            $(this).addClass('active');
+            
+            // Update game state and server
+            $.post('/set_bulk_buy_mode', { type: 'upgrades', mode: count }, function(data) {
+                if (data.success) {
+                    gameState.bulk_buy_mode = data.bulk_buy_mode;
+                    renderUpgrades();
+                }
+            });
+        });
+
+        $(document).off('click', '.bulk-btn.assets').on('click', '.bulk-btn.assets', function() {
+            const count = parseInt($(this).data('count'));
+            $('.bulk-btn.assets').removeClass('active');
+            $(this).addClass('active');
+            
+            // Update game state and server
+            $.post('/set_bulk_buy_mode', { type: 'assets', mode: count }, function(data) {
+                if (data.success) {
+                    gameState.bulk_buy_mode = data.bulk_buy_mode;
+                    renderPassiveAssets();
+                }
+            });
+        });
+        
+        // Fix for issue #1 - Code animation in code display
+        // Corrected version of the code button click handler
+        $('#code-btn').off('click').on('click', function(e) {
+            const btnPos = $(this).offset();
+            const centerX = btnPos.left + $(this).width() / 2;
+            const centerY = btnPos.top + $(this).height() / 2;
+            
+            // Track this click for click rate calculation
+            clickTracker.addClick(Date.now());
+            
+            // Create particles
+            const numParticles = 3 + Math.floor(Math.random() * 4);
+            for (let i = 0; i < numParticles; i++) {
+                createCodeParticle(
+                    centerX + (Math.random() * 40 - 20),
+                    centerY + (Math.random() * 40 - 20)
+                );
+            }
+            
+            $.post('/click', function(data) {
+                if (data.game_state) {
+                    Object.assign(gameState, data.game_state);
+                }
+                
+                if (data.new_achievements && data.new_achievements.length > 0) {
+                    showNewAchievements(data.new_achievements);
+                }
+                
+                if (data.new_event) {
+                    // A new event was triggered
+                    updateActiveEvents();
+                }
+                
+                updateUI();
+                
+                // Fix for issue #1 - Add code snippet to display
+                const snippet = codeSnippets[Math.floor(Math.random() * codeSnippets.length)];
+                const codeContent = $('#code-content');
+                const currentCode = codeContent.text();
+                const lines = currentCode.split('\n');
+                
+                // Remove oldest line if we have too many
+                if (lines.length > 15) {
+                    lines.shift();
+                }
+                
+                // Add new snippet
+                lines.push(snippet);
+                
+                // Update text and scroll to bottom
+                codeContent.text(lines.join('\n'));
+                codeContent.scrollTop(codeContent[0].scrollHeight);
+            });
+        });
+        
+        // Initialize the UI
+        $(document).ready(function() {
+            // Make sure we have both the upgrade multiplier and prestige requirement constants
+            console.log("Initializing with UPGRADE_MULTIPLIER:", UPGRADE_MULTIPLIER);
+            console.log("Initializing with PRESTIGE_REQUIREMENT:", PRESTIGE_REQUIREMENT);
+            
+            // Set initial bulk buy mode if not already set
+            if (!gameState.bulk_buy_mode) {
+                gameState.bulk_buy_mode = { upgrades: 1, assets: 1 };
+            }
+            
+            // Set the active bulk buy buttons to match game state
+            $(`.bulk-btn.upgrades[data-count="${gameState.bulk_buy_mode.upgrades}"]`).addClass('active');
+            $(`.bulk-btn.assets[data-count="${gameState.bulk_buy_mode.assets}"]`).addClass('active');
+            
+            // Update the UI
+            updateUI();
+
+            // Add CSS override for prestige tooltip for all themes
+            $("<style>")
+                .prop("type", "text/css")
+                .html(`
+                    /* Fix prestige tooltip position for all themes */
+                    #prestige-info[data-tooltip]:hover::before {
+                        top: 100% !important;
+                        bottom: auto !important;
+                        margin-top: 10px !important;
+                        margin-bottom: 0 !important;
+                    }
+                `)
+                .appendTo("head");
+        });
+
+        // Function to ensure tier headers work correctly
+        function setupTierHeaders() {
+            // Make sure each tier header gets proper z-index
+            // This ensures higher tiers appear below lower tiers when scrolling
+            $('#click-upgrades-list .tier-header, #passive-upgrades-list .tier-header').each(function(index) {
+                $(this).css('z-index', 10 - index);
+            });
+            
+            // Make header backgrounds match the current theme
+            $('.upgrades-list').on('scroll', function() {
+                // Add a class to headers that are currently sticky
+                $(this).find('.tier-header').each(function() {
+                    const headerPos = $(this).offset().top;
+                    const containerPos = $(this).closest('.upgrades-list').offset().top;
+                    
+                    if (headerPos <= containerPos) {
+                        $(this).addClass('sticky-active');
+                    } else {
+                        $(this).removeClass('sticky-active');
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>

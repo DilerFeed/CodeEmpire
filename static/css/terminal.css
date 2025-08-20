@@ -1,0 +1,105 @@
+body {
+    background-color: #000;
+    color: #0f0;
+    font-family: 'Courier New', monospace;
+}
+
+#game-container {
+    background-color: #000;
+    box-shadow: 0 0 10px #0f0;
+}
+
+header, footer {
+    border-color: #0f0;
+}
+
+header h1 {
+    color: #0f0;
+    text-shadow: 0 0 5px #0f0;
+}
+
+#code-display {
+    background-color: #000;
+    border: 1px solid #0f0;
+    color: #0f0;
+    box-shadow: 0 0 5px #0f0 inset;
+}
+
+.btn {
+    background-color: #000;
+    color: #0f0;
+    border: 1px solid #0f0;
+    font-family: 'Courier New', monospace;
+}
+
+.btn:hover {
+    background-color: #0f0;
+    color: #000;
+}
+
+.stat-box, #code-area, #click-upgrades, #passive-upgrades {
+    background-color: #000;
+    border: 1px solid #0f0;
+    box-shadow: 0 0 5px #0f0;
+}
+
+.upgrade-item {
+    border-bottom: 1px solid #0f0;
+}
+
+.upgrade-info h3, .upgrade-info p {
+    color: #0f0;
+}
+
+#theme-progress-container {
+    background-color: #000;
+    border: 1px solid #0f0;
+}
+
+#theme-progress-bar {
+    background-color: #0f0;
+}
+
+#lines-counter {
+    color: #0f0;
+    text-shadow: 0 0 5px #0f0;
+}
+
+.level {
+    color: #0d0;
+}
+
+/* Fix for text readability */
+.stat-item .stat-label, 
+.stat-item .stat-value {
+    color: #0f0; /* Make both label and value green for terminal theme */
+}
+
+.stats-section h3 {
+    color: #0f0;
+    border-bottom: 1px solid #0f0;
+}
+
+#achievements-container, 
+#stats-container {
+    background-color: #000;
+    color: #0f0;
+    border: 1px solid #0f0;
+}
+
+.achievement-item {
+    background-color: #000;
+    border: 1px solid #0f0;
+}
+
+.achievement-reward {
+    color: #0f0;
+}
+
+/* Theme-specific tier header styling */
+.tier-header {
+    background-color: #000;
+    color: #0f0;
+    border-bottom: 1px solid #0f0;
+    box-shadow: 0 2px 5px rgba(15,255,15,0.1);
+}
